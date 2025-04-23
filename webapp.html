@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect 4 - Arcade Mode</title>
+  <style>
+    body {
+      font-family: 'Press Start 2P', cursive;
+      text-align: center;
+      background-color: black;
+      color: lime;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-top: 20px;
+      font-size: 24px;
+      color: cyan;
+      text-shadow: 2px 2px magenta;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 70px);
+      gap: 4px;
+      justify-content: center;
+      margin: 20px auto;
+    }
+    .cell {
+      width: 70px;
+      height: 70px;
+      background-color: black;
+      font-size: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid lime;
+      cursor: pointer;
+      color: yellow;
+      transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+    .cell.taken {
+      cursor: not-allowed;
+    }
+    .cell.glow {
+      animation: glowEffect 0.6s ease-out;
+    }
+    @keyframes glowEffect {
+      0% { box-shadow: 0 0 5px 2px magenta; transform: scale(1.1); }
+      100% { box-shadow: none; transform: scale(1); }
+    }
+    #message {
+      font-size: 16px;
+      margin: 20px;
+      min-height: 20px;
+    }
+    #resetButton {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 12px;
+      padding: 10px 20px;
+      background-color: magenta;
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 10px cyan;
+      margin-top: 10px;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+  </style>
+</head>
+<body>
+  <h1>Connect 4 - Arcade Mode</h1>
+  <div id="board"></div>
+  <div id="message"></div>
+  <button id="resetButton">RESET</button>
+
+  <script>
+    const COLS = 7;
+    const ROWS = 6;
+    const boardEl = document.getElementById("board");
+    const message = document.getElementById("message");
+    const resetButton = document.getElementById("resetButton");
+    let board = [];
+    let gameActive = true;
+    const comments = [
+      "You're dropping heat!",
+      "Stack it up!",
+      "Boom! That's the move!",
+      "Column control!",
+      "Arcade genius!"
+    ];
+
+    function createBoard() {
+      boardEl.innerHTML = "";
+      board = Array.from({ length: ROWS }, () => Array(COLS).fill(""));
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.addEventListener("click", () => handleMove(c));
+          boardEl.appendChild(cell);
+        }
+      }
+    }
+
+    function handleMove(col) {
+      if (!gameActive) return;
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r][col] === "") {
+          board[r][col] = "X";
+          updateUI();
+          showMessage(getRandomComment());
+          if (checkWinner("X")) return;
+          setTimeout(computerMove, 500);
+          return;
+        }
+      }
+    }
+
+    function computerMove() {
+      if (!gameActive) return;
+      let col;
+      do {
+        col = Math.floor(Math.random() * COLS);
+      } while (board[0][col] !== "");
+      for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r][col] === "") {
+          board[r][col] = "O";
+          updateUI();
+          showMessage("Computer strikes back!");
+          checkWinner("O");
+          return;
+        }
+      }
+    }
+
+    function updateUI() {
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const index = r * COLS + c;
+          const cell = boardEl.children[index];
+          cell.textContent = board[r][c];
+          if (board[r][c]) {
+            cell.classList.add("taken", "glow");
+            setTimeout(() => cell.classList.remove("glow"), 500);
+          }
+        }
+      }
+    }
+
+    function checkWinner(player) {
+      // Horizontal, vertical, diagonal checks
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (checkLine(r, c, 0, 1, player) ||
+              checkLine(r, c, 1, 0, player) ||
+              checkLine(r, c, 1, 1, player) ||
+              checkLine(r, c, 1, -1, player)) {
+            gameActive = false;
+            showMessage(`${player} wins!`);
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function checkLine(r, c, dr, dc, player) {
+      for (let i = 0; i < 4; i++) {
+        const nr = r + dr * i;
+        const nc = c + dc * i;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS || board[nr][nc] !== player) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function getRandomComment() {
+      return comments[Math.floor(Math.random() * comments.length)];
+    }
+
+    function showMessage(msg) {
+      message.textContent = msg;
+    }
+
+    resetButton.addEventListener("click", () => {
+      gameActive = true;
+      message.textContent = "";
+      createBoard();
+    });
+
+    createBoard();
+  </script>
+</body>
+</html>
+<div>
+    <br>
+</div>
+<div>
+    <a href="index.html">Resume Page</a>
+    <a href="scratch.html">Hobby Page</a>
+</div>
